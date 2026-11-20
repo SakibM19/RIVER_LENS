@@ -18,7 +18,7 @@ lib/       database, access code, Gemini/Anthropic calls, validation
 5. **Redeploy** (Deployments > latest > Redeploy) so the variables apply, then open your `.vercel.app` address.
 6. Check the **Status** tab: AI "on", Database "connected", Access code "required".
 
-If the default model is rejected, add `RIVERLENS_MODEL` with a model name your key can use (default is `gemini-2.5-flash`). `ANTHROPIC_API_KEY` also works instead of Gemini.
+If the default model is rejected, add `RIVERLENS_MODEL` with a model name your key can use (default is `gemini-3.8-flash`). `ANTHROPIC_API_KEY` also works instead of Gemini.
 
 ## Run locally (optional)
 Needs Node 22+. `DATABASE_URL=sqlite:./local.db GEMINI_API_KEY=... ACCESS_CODE=... node dev-server.js` then open http://localhost:3000.
