@@ -1,1 +1,1 @@
-{ "functions": { "api/observations.js": { "maxDuration": 60 }, "api/reanalyze.js": { "maxDuration": 180} } }
+{ "functions": { "api/observations.js": { "maxDuration": 60 }, "api/reanalyze.js": { "maxDuration": 60 } } }
