@@ -1,6 +1,8 @@
 // Diagnostic: lists models the key can use and times a tiny text call. Needs the access code (login first).
 const {config}=require('../lib/riverlens'); const A=require('../lib/auth');
 module.exports=A.guard(async(req,res)=>{
+  const okCode=process.env.ACCESS_CODE&&A.same(req.query.code||'',process.env.ACCESS_CODE);
+  if(!okCode&&!(req.user&&req.user.role==='reviewer')) return res.status(403).json({error:'Reviewers only. Log in as a reviewer, or add ?code=<ACCESS_CODE> to the address.'});
   const c=config(); const out={provider:c.provider,model:c.model}; res.setHeader('Cache-Control','no-store');
   if(c.provider!=='gemini'){return res.status(200).json({...out,note:'Gemini is not the active provider.'})}
   const H={'x-goog-api-key':c.key,'Content-Type':'application/json'};

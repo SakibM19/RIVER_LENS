@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welcome to RiverLens</title><link rel="stylesheet" href="/style.css"></head><body class="welcome">
+<main class="wl">
+ <div class="wl-hero">
+  <svg class="wl-logo" width="64" height="64" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#2f6b3f"/><path d="M16 5c6 3 8 9 4 14-2 2.500-5 3-8 2 0-6 1-12 4-16z" fill="#a8d672"/><path d="M16 8c-1 4-1 9 0 14" stroke="#2f6b3f" stroke-width="1.400" fill="none"/><path d="M5 23c3-3 5 3 9 0s6 3 9 0 4-1 4-1" stroke="#bfe6f7" stroke-width="2.200" fill="none" stroke-linecap="round"/></svg>
+  <h1>Welcome to RiverLens</h1>
+  <p class="wl-lead">Dhaka's rivers, canals, lakes and ponds look after us. Here, neighbours notice what is visible on the water, share a photo and talk about it. A person always has the last word.</p>
+ </div>
+ <div id="back" class="card wl-back" hidden><b id="backName"></b><span class="muted">You are already signed in.</span><a class="btn sm" href="/" id="backGo">Continue to the community</a></div>
+ <div class="wl-choices">
+  <section class="card wl-opt">
+   <div class="wl-ico">👀</div><h2>Just looking around</h2>
+   <p class="muted">Read the community feed and see what others have noticed. No account needed. You can join any time.</p>
+   <button class="btn ghost" id="visitor" type="button">Continue as a visitor</button>
+  </section>
+  <section class="card wl-opt main">
+   <div class="wl-ico">🤝</div><h2>Join the community</h2>
+   <p class="muted">Share photos, like and comment. It takes a minute and needs only a username and password.</p>
+   <a class="btn" id="join" href="/login.html?mode=up">Create an account</a>
+   <p class="wl-small">Already a member? <a href="/login.html?mode=in">Log in</a> · <a href="/login.html?mode=in&as=reviewer">Reviewer log in</a></p>
+  </section>
+ </div>
+ <p class="wl-note muted">RiverLens describes only what can be <b>seen</b> in a photo. It is not a water-quality test, not a safety judgement, and it does not name who caused anything.</p>
+</main>
+<script src="/welcome.js"></script></body></html>
