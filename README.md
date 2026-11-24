@@ -33,3 +33,8 @@ Variables only apply after a redeploy.
 - `/welcome.html`: first screen. Choose "Continue as a visitor" (read-only feed) or "Create an account". Signed-in members skip it.
 - Profile menu (top right, like Facebook): profile, Profile settings (change username, change password), Review queue (reviewers), Welcome page, Log out.
 - Reviewer usernames/passwords are still changed only through the REVIEWERS variable in Vercel.
+
+## v3 additions
+- Members can change their profile picture, username and password from the profile menu -> Profile settings. Pictures are cropped to a square and shrunk to 192x192 in the browser before saving (stored in the database, no extra service needed). The picture shows in the header, on posts and on comments.
+- Reviewers can change their picture; their username and password still come from the REVIEWERS variable.
+- The database gets a new `users.avatar` column automatically on first start.

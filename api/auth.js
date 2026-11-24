@@ -6,16 +6,27 @@ module.exports=A.guard(async(req,res)=>{
   if(act==='logout'){A.clearSession(req,res);return res.status(200).json({ok:true})}
   const d=await db(); if(!d) return res.status(503).json({error:'Database is not connected.',code:'no_db'});
   const name=String(b.username||'').trim(), pw=String(b.password||'');
-  if(act==='me'||act==='rename'||act==='password'){
+  if(act==='me'||act==='rename'||act==='password'||act==='avatar'){
     if(!req.user) return res.status(401).json({error:'Please log in first.',code:'login'});
     const uid=req.user.id, rev=req.user.role==='reviewer';
     if(act==='me'){
       const n=async(sql)=>Number(((await d.query(sql,[uid]))[0]||{}).n||0);
       const joined=((await d.query(`SELECT created_at FROM users WHERE id=$1`,[uid]))[0]||{}).created_at||null;
-      return res.status(200).json({user:req.user,joined,
+      const hasA=!!((await d.query(`SELECT avatar FROM users WHERE id=$1`,[uid]))[0]||{}).avatar;
+      return res.status(200).json({user:req.user,joined,has_avatar:hasA,
         posts:await n(`SELECT COUNT(*) AS n FROM observations WHERE user_id=$1`),
         comments:await n(`SELECT COUNT(*) AS n FROM comments WHERE user_id=$1`),
         likes_received:await n(`SELECT COUNT(*) AS n FROM likes l JOIN observations o ON o.id=l.observation_id WHERE o.user_id=$1`)});
+    }
+    if(act==='avatar'){
+      if(!A.limit(req,'avatar',10)) return res.status(429).json({error:'Too many attempts. Wait a minute.'});
+      if(b.remove){ await d.query(`UPDATE users SET avatar=NULL WHERE id=$1`,[uid]); return res.status(200).json({ok:true,has_avatar:false}) }
+      const m=/^data:image\/jpeg;base64,([A-Za-z0-9+\/=]+)$/.exec(String(b.image||''));
+      if(!m) return res.status(400).json({error:'Please choose a JPEG, PNG or WEBP picture.'});
+      const buf=Buffer.from(m[1],'base64');
+      if(buf.length>90000||buf.length<200||buf[0]!==0xFF||buf[1]!==0xD8) return res.status(400).json({error:'That picture could not be used. Try a different one.'});
+      await d.query(`UPDATE users SET avatar=$1 WHERE id=$2`,[m[1],uid]);
+      return res.status(200).json({ok:true,has_avatar:true});
     }
     if(rev) return res.status(403).json({error:'Reviewer accounts are managed by the project owner (REVIEWERS setting in Vercel).'});
     if(!A.limit(req,'prof',10)) return res.status(429).json({error:'Too many attempts. Wait a minute.'});

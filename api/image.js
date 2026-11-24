@@ -2,6 +2,10 @@ const {db}=require('../lib/db'); const A=require('../lib/auth');
 module.exports=async(req,res)=>{
   try{
     const d=await db(); if(!d) return res.status(503).end('No database');
+    if(req.query.u){ const u=(await d.query(`SELECT avatar FROM users WHERE id=$1`,[parseInt(req.query.u,10)||0]))[0];
+      if(!u||!u.avatar) return res.status(404).end('No picture');
+      res.setHeader('Content-Type','image/jpeg'); res.setHeader('Cache-Control','public, max-age=300');
+      res.statusCode=200; return res.end(Buffer.from(u.avatar,'base64')) }
     const id=parseInt(req.query.id,10); const col=req.query.thumb?'COALESCE(thumb_b64,image_b64)':'image_b64';
     const r=(await d.query(`SELECT ${col} AS img FROM observations WHERE id=$1`,[id]))[0];
     if(!r) return res.status(404).end('Not found');

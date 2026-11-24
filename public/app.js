@@ -18,6 +18,8 @@ let ME=null, STATUS={}, FEED_N=10;
 const isRev=()=>ME&&ME.role==='reviewer', canDel=o=>isRev(), canRerun=o=>ME&&(isRev()||ME.id===o.user_id);
 const CONCERN=['visible_litter','litter_accumulation','surface_foam_or_film','unusual_surface_appearance'];
 const isConcern=r=>r.finding_status!=='rejected'&&CONCERN.includes(r.final_category||r.primary_category);
+let AV_V='';
+const av=(id,name,cls='')=>`<span class="avatar ${cls}">${ini(name)}${id?`<img alt="" src="/api/image?u=${id}${ME&&id===ME.id&&AV_V?'&v='+AV_V:''}" onerror="this.remove()">`:''}</span>`;
 const ini=n=>esc((n||'?').trim().charAt(0).toUpperCase());
 const row=r=>({...r,img:`/api/image?id=${r.id}&thumb=1`,needs_review:!!r.needs_review});
 
@@ -121,9 +123,9 @@ async function loadSettings(){await loadStatus();let n='—';try{n=(await allRow
 function renderUser(){const u=$('#userArea');
  if(!ME){u.innerHTML='<button class="btn sm" id="loginBtn" type="button">Log in</button><button class="btn ghost sm" id="signupBtn" type="button">Sign up</button>';
   $('#loginBtn').onclick=()=>showAuth('in');$('#signupBtn').onclick=()=>showAuth('up');return}
- u.innerHTML=`<div class="pmenu"><button class="pbtn" id="pbtn" type="button" aria-haspopup="true" aria-expanded="false"><span class="avatar sm">${ini(ME.username)}</span><span class="pname">${esc(ME.username)}</span><span class="caret">▾</span></button>
+ u.innerHTML=`<div class="pmenu"><button class="pbtn" id="pbtn" type="button" aria-haspopup="true" aria-expanded="false">${av(ME.id,ME.username,"sm")}<span class="pname">${esc(ME.username)}</span><span class="caret">▾</span></button>
  <div class="ppanel" id="ppanel" hidden role="menu">
-  <button class="pitem top" id="pProfile" type="button" role="menuitem"><span class="avatar">${ini(ME.username)}</span><span><b>${esc(ME.username)}</b><small>${isRev()?'Reviewer account':'Community member'} · see your profile</small></span></button>
+  <button class="pitem top" id="pProfile" type="button" role="menuitem">${av(ME.id,ME.username)}<span><b>${esc(ME.username)}</b><small>${isRev()?'Reviewer account':'Community member'} · see your profile</small></span></button>
   <hr>
   <button class="pitem" id="pSettings" type="button" role="menuitem"><span class="pi">⚙️</span>Profile settings</button>
   ${isRev()?'<button class="pitem" id="pReview" type="button" role="menuitem"><span class="pi">🔍</span>Review queue</button>':''}
@@ -141,16 +143,24 @@ function renderUser(){const u=$('#userArea');
  $('#logoutBtn').onclick=async()=>{try{await post('/api/auth',{action:'logout'})}catch(e){}try{localStorage.removeItem('rl_member');sessionStorage.removeItem('rl_in')}catch(e){}location.href='/login.html?out=1'};
  if(!window._pmBound){window._pmBound=1;document.addEventListener('click',()=>{const x=$('#ppanel');if(x&&!x.hidden){x.hidden=true;$('#pbtn').setAttribute('aria-expanded','false')}});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){const x=$('#ppanel');if(x)x.hidden=true;closeProfile()}})}}
-async function openProfile(){const m=$('#pmodal'),b=$('#pbody');m.hidden=false;b.innerHTML='<p class="muted">Loading…</p>';
+async function openProfile(note){const m=$('#pmodal'),b=$('#pbody');m.hidden=false;b.innerHTML='<p class="muted">Loading…</p>';
  let me;try{me=await post('/api/auth',{action:'me'})}catch(e){b.innerHTML=`<p class="msg err">${esc(e.message)}</p>`;return}
  const rev=me.user.role==='reviewer';
- b.innerHTML=`<div class="prof-head"><span class="avatar big">${ini(me.user.username)}</span><div><h2 style="margin:0">${esc(me.user.username)}</h2><div class="muted">${rev?'Reviewer account':'Community member'}${me.joined?' · joined '+esc(String(me.joined).slice(0,10)):''}</div></div></div>
+ b.innerHTML=`<div class="prof-head">${av(me.user.id,me.user.username,"big")}<div><h2 style="margin:0">${esc(me.user.username)}</h2><div class="muted">${rev?'Reviewer account':'Community member'}${me.joined?' · joined '+esc(String(me.joined).slice(0,10)):''}</div></div></div>
  <div class="tiles pt"><div class="tile"><b>${me.posts}</b><span>Photos shared</span></div><div class="tile"><b>${me.comments}</b><span>Comments</span></div><div class="tile"><b>${me.likes_received}</b><span>Likes received</span></div></div>
+ <form id="avF"><h3>Profile picture</h3><p class="muted" style="margin:4px 0 0">JPEG, PNG or WEBP. It is cropped to a square and shrunk before it is saved.</p><div class="row" style="margin-top:8px"><label class="btn ghost sm filebtn">Choose picture<input id="avFile" type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button class="btn sm" id="avSave" type="button" disabled>Save picture</button>${me.has_avatar?'<button class="btn ghost sm" id="avDel" type="button">Remove picture</button>':''}</div><div class="msg" id="avMsg"></div></form>
  ${rev?'<p class="muted">Reviewer accounts are set up by the project owner (the REVIEWERS setting in Vercel), so the username and password are changed there.</p>':`
  <form id="renF"><h3>Change username</h3><label>New username<input id="newU" maxlength="24" value="${esc(me.user.username)}" required></label><button class="btn sm" style="margin-top:10px">Save username</button><div class="msg" id="renMsg"></div></form>
  <form id="pwF"><h3>Change password</h3><label>Current password<input id="curP" type="password" autocomplete="current-password" required></label><label>New password (8+ characters)<input id="newP" type="password" autocomplete="new-password" minlength="8" required></label><button class="btn sm" style="margin-top:10px">Save password</button><div class="msg" id="pwMsg"></div></form>`}
  <div class="row" style="margin-top:14px"><button class="btn ghost sm" id="pOut" type="button">Log out</button></div>`;
  $('#pOut').onclick=()=>$('#logoutBtn')&&$('#logoutBtn').click();
+ {let blob=null;const msg=(t,c)=>{const g=$('#avMsg');g.className='msg '+(c||'');g.textContent=t};if(note)msg(note,'ok');
+  $('#avFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;msg('');
+   try{const bmp=await createImageBitmap(f);const n=Math.min(bmp.width,bmp.height),cv=document.createElement('canvas');cv.width=cv.height=192;
+    cv.getContext('2d').drawImage(bmp,(bmp.width-n)/2,(bmp.height-n)/2,n,n,0,0,192,192);blob=cv.toDataURL('image/jpeg',0.85);
+    const big=document.querySelector('#pbody .avatar.big');big.innerHTML=`<img alt="" src="${blob}">`;$('#avSave').disabled=false}catch(err){msg('That file could not be read as a picture.','err')}};
+  $('#avSave').onclick=async()=>{if(!blob)return;try{await post('/api/auth',{action:'avatar',image:blob});AV_V=Date.now();msg('Picture saved.','ok');renderUser();openProfile('Picture saved.')}catch(err){msg(err.message,'err')}};
+  if($('#avDel'))$('#avDel').onclick=async()=>{try{await post('/api/auth',{action:'avatar',remove:true});AV_V=Date.now();renderUser();openProfile('Picture removed.')}catch(err){msg(err.message,'err')}}}
  if(!rev){
   $('#renF').onsubmit=async e=>{e.preventDefault();const g=$('#renMsg');g.className='msg';g.textContent='';
    try{const d=await post('/api/auth',{action:'rename',username:$('#newU').value});ME=d.user;renderUser();g.className='msg ok';g.textContent='Username updated.';
@@ -164,7 +174,7 @@ $('#pclose').onclick=closeProfile;$('#pmodal').onclick=e=>{if(e.target.id==='pmo
 
 // ---------- community feed ----------
 function postCard(r){const f=r.final_category||r.primary_category,del=canDel(r);
- return `<article class="post${isConcern(r)?' concern':''}" data-id="${r.id}"><div class="ph"><span class="avatar">${ini(r.author||'?')}</span><div><b>${esc(r.author||'Earlier record')}${r.author_role==='reviewer'?' <span class="rolebadge">REVIEWER</span>':''}</b><span class="muted">${esc(r.site)} · ${esc(fmt(r.created_at))}</span></div></div>
+ return `<article class="post${isConcern(r)?' concern':''}" data-id="${r.id}"><div class="ph">${av(r.user_id,r.author||'?')}<div><b>${esc(r.author||'Earlier record')}${r.author_role==='reviewer'?' <span class="rolebadge">REVIEWER</span>':''}</b><span class="muted">${esc(r.site)} · ${esc(fmt(r.created_at))}</span></div></div>
  ${r.note?`<div class="pnote">${esc(r.note)}</div>`:''}<img class="pimg" loading="lazy" src="/api/image?id=${r.id}" alt="photo at ${esc(r.site)}" data-open="${r.id}">
  <div class="ptags tags">${tags(r)}</div>
  <div class="acts"><button data-like="${r.id}" class="${r.mine?'on':''}">🌿 Support <span>${r.likes||''}</span></button><button data-cm="${r.id}">💬 Comments <span>${r.comments||''}</span></button><button data-open="${r.id}">Details</button><span class="grow"></span>${del?`<button class="danger" data-del="${r.id}">Delete</button>`:''}</div>
@@ -177,7 +187,7 @@ function bindFeed(){$$('#feed [data-open]').forEach(b=>b.onclick=()=>openDetail(
  $$('#feed [data-like]').forEach(b=>b.onclick=async()=>{if(!ME)return showAuth('in');try{const d=await post('/api/social',{action:'like',observation_id:+b.dataset.like});b.classList.toggle('on',d.liked);b.querySelector('span').textContent=d.likes||''}catch(e){alert(e.message)}});
  $$('#feed [data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Delete this post, its photo and its comments? This cannot be undone.')){try{await post('/api/delete',{id:+b.dataset.del});loadFeed();refreshBadge()}catch(e){alert(e.message)}}});
  $$('#feed [data-cm]').forEach(b=>b.onclick=()=>{const box=b.closest('.post').querySelector('.cmts');if(box.hidden){box.hidden=false;loadComments(+b.dataset.cm,box)}else box.hidden=true})}
-function cmHTML(c,replyable){return `<div class="cm" data-c="${c.id}"><span class="avatar sm">${ini(c.username||'?')}</span><div><div class="bub"><b>${esc(c.username||'deleted user')}${c.role==='reviewer'?' <span class="rolebadge">REVIEWER</span>':''}</b>${esc(c.body)}</div>
+function cmHTML(c,replyable){return `<div class="cm" data-c="${c.id}">${av(c.user_id,c.username||'?','sm')}<div><div class="bub"><b>${esc(c.username||'deleted user')}${c.role==='reviewer'?' <span class="rolebadge">REVIEWER</span>':''}</b>${esc(c.body)}</div>
  <div class="meta">${esc(fmt(c.created_at))} ${replyable&&ME?`<button data-reply="${c.id}">Reply</button>`:''}${ME&&(isRev()||ME.id===c.user_id)?`<button data-delc="${c.id}">Delete</button>`:''}</div></div></div>`}
 async function loadComments(id,box){const o=await api('/api/observation?id='+id);const top=o.comments.filter(c=>!c.parent_id);
  box.innerHTML=(top.length?top.map(c=>cmHTML(c,true)+`<div class="replies">${o.comments.filter(r=>r.parent_id===c.id).map(r=>cmHTML(r,false)).join('')}</div>`).join(''):'<p class="muted" style="margin:10px 0 0">No comments yet.</p>')+

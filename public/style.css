@@ -89,3 +89,4 @@ body.welcome{background:radial-gradient(1200px 500px at 50% -10%,#dff0d2,transpa
 a.btn.ghost{display:inline-block;text-align:center}
 .userarea{margin-left:auto}@media(max-width:1180px){.brand small{display:none}}
 @media(max-width:760px){.bar nav{order:3;width:100%}.bar .userarea{order:2}}
+.avatar{position:relative;overflow:hidden}.avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.filebtn{cursor:pointer;margin:0}
